@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AspnetCoreWithBugs.Models;
+using AspnetCoreWithBugs.Data;
 
 namespace AspnetCoreWithBugs.Controllers
 {
@@ -20,7 +21,7 @@ namespace AspnetCoreWithBugs.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Product.ToListAsync());
+            return View(await ProductDb.GetAllProducts(_context));
         }
 
         public IActionResult Create()
@@ -29,11 +30,11 @@ namespace AspnetCoreWithBugs.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Product product)
+        public IActionResult Create(Product product)
         {
             if (ModelState.IsValid)
             {
-                await _context.AddAsync(product);
+                ProductDb.Add(product, _context);
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -41,7 +42,7 @@ namespace AspnetCoreWithBugs.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await ProductDb.GetProductById(id, _context);
             if (product == null)
             {
                 return NotFound();
@@ -50,13 +51,12 @@ namespace AspnetCoreWithBugs.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Product product)
+        public IActionResult Edit(Product product)
         {
             if (ModelState.IsValid)
             {
-                _context.Update(product);
-                await _context.SaveChangesAsync();
- 
+                ProductDb.Edit(product, _context);
+
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -64,8 +64,7 @@ namespace AspnetCoreWithBugs.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            var product = await _context.Product
-                .FirstOrDefaultAsync(m => m.ProductId == id);
+            var product = await ProductDb.GetProductById(id, _context);
 
             if (product == null)
             {
@@ -76,16 +75,10 @@ namespace AspnetCoreWithBugs.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Product product)
         {
-            var product = await _context.Product.FindAsync(id);
-            _context.Product.Remove(product);
+            ProductDb.Delete(product, _context);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Product.Any(e => e.ProductId == id);
         }
     }
 }
