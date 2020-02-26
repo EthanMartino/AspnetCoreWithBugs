@@ -14,20 +14,24 @@ namespace AspnetCoreWithBugs.Data
             return await context.Product.ToListAsync();
         }
 
-        public static async void Add(Product p, ProductContext context)
+        public static async Task<Product> Add(Product p, ProductContext context)
         {
             await context.AddAsync(p);
             await context.SaveChangesAsync();
+
+            return p;
         }
 
-        public static async void Edit(Product p, ProductContext context)
+        public static async Task<Product> Edit(Product p, ProductContext context)
         {
             await context.AddAsync(p);
             context.Entry(p).State = EntityState.Modified;
             await context.SaveChangesAsync();
+
+            return p;
         }
 
-        public static async void Delete(Product p, ProductContext context)
+        public static async Task Delete(Product p, ProductContext context)
         {
             await context.AddAsync(p);
             context.Entry(p).State = EntityState.Deleted;
